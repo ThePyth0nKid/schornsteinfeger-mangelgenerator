@@ -1,4 +1,8 @@
+// server.js
+
+// Laden der Umgebungsvariablen aus der .env-Datei
 require('dotenv').config();
+
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
@@ -8,19 +12,17 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
-const apiKey = process.env.OPENAI_API_KEY;
-
-// Ausgabe des API-Schlüssels zur Überprüfung
-console.log('Loaded API Key:', apiKey);
-
 // Funktion zum Abrufen von Daten von der OpenAI-API
-async function getChatCompletion(messages) {
+async function getCompletion(prompt) {
+  const apiKey = process.env.OPENAI_API_KEY;
+  const model = 'davinci:ft-your-organization-2024-05-27-20-45-22'; // Ersetze durch den tatsächlichen Modellnamen
+
   try {
     const response = await axios.post(
-      'https://api.openai.com/v1/chat/completions',
+      'https://api.openai.com/v1/completions', // Verwende den richtigen Endpunkt
       {
-        model: 'gpt-4',
-        messages: messages,
+        model: 'ft:davinci-002:personal::9TRfDQGp', // Verwende den Namen des feingetunten Modells
+        prompt: prompt,
         max_tokens: 150,
         temperature: 0.7
       },
@@ -31,9 +33,9 @@ async function getChatCompletion(messages) {
         }
       }
     );
-    return response.data.choices[0].message.content.trim();
+    return response.data.choices[0].text.trim();
   } catch (error) {
-    console.error('Error fetching data from OpenAI API:', error.response ? error.response.data : error.message);
+    console.error('Error fetching data from OpenAI API:', error);
     throw error;
   }
 }
@@ -45,13 +47,10 @@ app.post('/api/generate', async (req, res) => {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
-  const messages = [
-    { role: 'system', content: 'You are a helpful assistant that generates legal documents based on input parameters.' },
-    { role: 'user', content: `Feuerungsanlage: ${feuerungsanlage}, Mangel: ${mangel}, Schwere: ${schwere}, Frist: ${frist}, Bemerkungen: ${bemerkungen}` }
-  ];
+  const prompt = `Feuerungsanlage: ${feuerungsanlage}, Mangel: ${mangel}, Schwere: ${schwere}, Frist: ${frist}, Bemerkungen: ${bemerkungen}`;
   
   try {
-    const completion = await getChatCompletion(messages);
+    const completion = await getCompletion(prompt);
     res.json({ completion });
   } catch (error) {
     res.status(500).json({ error: 'Failed to generate text' });
