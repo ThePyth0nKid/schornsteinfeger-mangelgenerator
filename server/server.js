@@ -21,7 +21,7 @@ async function getCompletion(prompt) {
     const response = await axios.post(
       'https://api.openai.com/v1/completions', // Verwende den richtigen Endpunkt
       {
-        model: 'ft:davinci-002:personal::9TRfDQGp', // Verwende den Namen des feingetunten Modells
+        model: 'ft:davinci-002:personal::9TYZFrIi', // Verwende den Namen des feingetunten Modells
         prompt: prompt,
         max_tokens: 150,
         temperature: 0.7
